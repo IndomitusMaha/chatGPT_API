@@ -9,7 +9,11 @@ key = data['key']
 
 openai.api_key = key
 
-bot = telebot.TeleBot('6341190720:AAEmekg_0fO1OrQVplWEIJfSAsra6g9BHwU')
+with open('telegram_key.json') as f:
+    data = json.load(f)
+telegram_key = data['key']
+
+bot = telebot.TeleBot({telegram_key})
 
 
 def generate_response(text):

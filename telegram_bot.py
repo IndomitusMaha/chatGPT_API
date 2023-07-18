@@ -13,7 +13,8 @@ with open('telegram_key.json') as f:
     data = json.load(f)
 telegram_key = data['key']
 
-bot = telebot.TeleBot({telegram_key})
+# bot = telebot.TeleBot({telegram_key})
+bot = telebot.TeleBot(token=telegram_key)
 
 
 def generate_response(text):

@@ -3,6 +3,9 @@ import webbrowser
 import json
 import openai
 import requests
+from datetime import datetime
+import os
+
 
 with open('key.json') as f:
     data = json.load(f)
@@ -64,6 +67,27 @@ def site(message):
 @bot.message_handler(commands=['help'])
 def main(message):
     bot.send_message(message.chat.id, '<b>No help!</b> <em>Figure out yourself!</em> <u>Done!</u>', parse_mode='html')
+
+
+@bot.message_handler(content_types=['voice'])
+def voice_processing(message):
+    file_info = bot.get_file(message.voice.file_id)
+    downloaded_file = bot.download_file(file_info.file_path)
+    timestamp = str(datetime.now().timestamp())
+    chat_id = str(message.chat.id)
+    filename = f'{chat_id}_{timestamp}'
+    with open(f'audio/{filename}.ogg', 'wb') as new_file:
+        new_file.write(downloaded_file)
+    file = open(f'audio/{filename}.ogg', 'rb')
+    result = openai.Audio.transcribe(
+        api_key=key,
+        model='whisper-1',
+        file=file,
+        response_format='text'
+    )
+    file.close()
+    os.remove(f'audio/{filename}.ogg')
+    bot.reply_to(message, f'Transcription: {result}')
 
 
 @bot.message_handler()

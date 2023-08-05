@@ -2,6 +2,7 @@ import telebot
 import webbrowser
 import json
 import openai
+import requests
 
 with open('key.json') as f:
     data = json.load(f)
@@ -34,6 +35,22 @@ def generate_response(text):
         return None
 
 
+def generate_image(message):
+    url = 'https://api.openai.com/v1/images/generations'
+
+    headers = {
+        'Authorization': f'Bearer {key}',
+        'Content-Type': 'application/json'
+    }
+
+    json_image = {"prompt": message}
+
+    response = requests.post(url=url, headers=headers, json=json_image)
+
+    return response
+
+
+
 @bot.message_handler(commands=['start', 'main', 'hello'])
 def main(message):
     bot.send_message(message.chat.id, f'Yo, {message.from_user.first_name}!')
@@ -55,6 +72,16 @@ def info(message):
         bot.send_message(message.chat.id, f'Yo, {message.from_user.first_name}!')
     elif message.text.lower() == 'id':
         bot.reply_to(message, f'ID: {message.from_user.id}')
+    elif 'image:' in message.text.lower():
+        prompt_text = str(message.text.lower().split(':')[1])
+        response = generate_image(prompt_text)
+        if response.status_code == 200:
+            result_json = response.json()
+            link = result_json['data'][0]['url']
+            # result_string = json.dumps(result_json)
+            bot.send_photo(message.chat.id, link)
+        else:
+            bot.reply_to(message, f'Error: {response.text}')
     else:
         response = generate_response(message.text)
         bot.send_message(message.chat.id, f'{response}')
